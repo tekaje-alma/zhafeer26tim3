@@ -1,0 +1,112 @@
+/* style.css - Tema Cerah & Elegan TKJ SMK AL-MAHRUSIYAH */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8fbff;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(100, 180, 255, 0.08) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(120, 220, 255, 0.08) 0%, transparent 20%),
+        radial-gradient(circle at 50% 50%, rgba(140, 200, 255, 0.05) 0%, transparent 30%);
+    background-attachment: fixed;
+    color: #1e293b;
+    line-height: 1.6;
+}
+
+/* Header + Logo SVG */
+header {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+    font-size: 28px;
+    color: #1e40af;
+}
+
+.logo svg {
+    width: 70px;
+    height: 70px;
+    margin-right: 15px;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 40px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #1e40af;
+    font-weight: 600;
+    font-size: 17px;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #3b82f6;
+}
+
+
+/* === TAMBAHAN UNTUK TENTANG.HTML === */
+
+/* Hero Tentang */
+.hero-tentang {
+    background: linear-gradient(135deg, rgba(255,255,255,0.75), rgba(240,249,255,0.9)),;
+    background-blend-mode: soft-light;
+    text-align:center;
+    padding: 160px 20px;
+}
+.hero-tentang h1 {
+    font-size:60px; color:#1e40af; margin-bottom:16px; }
+   
+.hero-tentang p { 
+    font-size:24px; color:#000000; }
+
+/* Section umum */
+section { padding:80px 0; }
+h2 { font-size:38px; color:#1e40af; text-align:center; margin-bottom:50px; }
+.container { max-width:1200px; margin:0 auto; padding:0 20px; }
+
+/* Sekilas */
+.sekilas { background:rgba(255,255,255,0.8); backdrop-filter:blur(12px); }
+.sekilas p { font-size:19px; text-align:center; max-width:900px; margin:0 auto; }
+
+/* Visi Misi */
+.visimisi {background-color: aliceblue; text-align:center; }
+.visi { font-size:28px; font-weight:bold; margin:30px 0; }
+.visimisi ul { max-width:800px; margin:40px auto; text-align:left; font-size:18px; }
+.visimisi li { margin:15px 0; }
+
+/* Guru */
+.guru-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:30px; }
+.guru-card { background:rgba(255,255,255,0.9); border-radius:20px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.06); text-align:center; }
+.guru-card img { width:100%; height:300px; object-fit:cover; }
+.guru-card h3 { margin:20px 0 10px; color:#1e40af; }
+
+/* Fasilitas */
+.fasilitas-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:25px; }
+.fasilitas-card { position:relative; border-radius:20px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.06); height:300px; }
+.fasilitas-card img { width:100%; height:100%; object-fit:cover; transition:transform 0.4s; }
+.fasilitas-card:hover img { transform:scale(1.1); }
+.fasilitas-caption { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,0.8)); color:white; padding:40px 15px 15px; font-size:18px; }
+
+
+/* Footer tetap sama */
+footer { background:rgba(30,64,175,0.95); color:white; text-align:center; padding:25px; }

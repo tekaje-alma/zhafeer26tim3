@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AI By Fallzz</title>
+<style>
+  :root{
+    --bg:#0b1220;            /* base used by animated gradient canvas fallback */
+    --panel:rgba(16,24,32,0.7);
+    --muted:#cbd5e1;
+    --accent:#0ea5a4;
+    --user:#0b79ff;
+    --ai:#10b981;
+    --glass:rgba(255,255,255,0.03);
+    --blur:12px;
+    --card-shadow:0 12px 32px rgba(0,0,0,0.48);
+  }
+
+  /* Splash (initial + used for Connect progress) */
+  #splash{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000;
+    background:linear-gradient(180deg,#021226 0%,#041226 60%);
+    color:white;flex-direction:column;gap:14px;font-family:Inter, sans-serif;transition:opacity .36s ease, transform .36s ease;
+  }
+  #splash.hidden{opacity:0;transform:scale(.99);pointer-events:none}
+  #splash .logo{width:96px;height:96px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--user),var(--accent));box-shadow:0 26px 60px rgba(2,6,23,0.6);font-weight:800;font-size:20px;color:white}
+  #splash .line{font-size:14px;opacity:0.95}
+  .splash-bar{width:44%;max-width:620px;height:10px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden}
+  .splash-progress{height:100%;width:0%;background:linear-gradient(90deg,var(--user),var(--accent));transition:width .18s ease}
+
+  /* Theme presets will override some variables programmatically */
+  [data-theme="dark"]{ color-scheme: dark; }
+  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue";background:var(--bg);color:var(--muted);overflow:hidden}
+
+  /* Layout */
+  .app{display:flex;height:100vh;gap:18px;padding:18px;box-sizing:border-box;position:relative;z-index:10}
+  aside{width:340px;background:var(--panel);border-radius:14px;padding:18px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:14px;backdrop-filter:blur(var(--blur));transition:transform .35s cubic-bezier(.2,.9,.2,1), opacity .35s}
+  aside.collapsed{transform:translateX(-420px);opacity:0}
+  main{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+  h1{margin:0;font-size:18px;color:var(--muted);font-weight:700}
+  p.small{margin:0;font-size:13px;color:var(--muted)}
+
+  .control-row{display:flex;gap:8px;align-items:center}
+  input[type="text"], input[type="url"]{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+  button{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--muted);backdrop-filter:blur(6px)}
+  button.primary{background:linear-gradient(90deg,var(--user),var(--accent));color:white;border:none;box-shadow:0 10px 30px rgba(11,79,190,0.12)}
+  .muted{color:var(--muted);font-size:13px}
+
+  /* chat area */
+  .chat-wrap{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));border-radius:14px;padding:18px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;height:100%;backdrop-filter:blur(var(--blur));position:relative}
+  #messages{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:6px 6px}
+  .bubble{display:flex;gap:12px;align-items:flex-start;max-width:84%;transition:transform .18s ease, box-shadow .18s}
+  .bubble:hover{transform:translateY(-3px)}
+  .bubble.user{margin-left:auto;flex-direction:row-reverse}
+  .avatar{width:44px;height:44px;border-radius:50%;flex:0 0 44px;overflow:hidden;border:2px solid rgba(255,255,255,0.03);display:inline-grid;place-items:center;background:linear-gradient(120deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03))}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .content{padding:12px 14px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));color:var(--muted);box-shadow:inset 0 -1px 0 rgba(255,255,255,0.02)}
+  .bubble.user .content{background:linear-gradient(90deg,var(--user), rgba(11,79,190,0.85));color:white}
+  .bubble.ai .content{box-shadow:0 6px 28px -8px rgba(16,185,129,0.16);border-left:4px solid rgba(16,185,129,0.85)}
+  .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+
+  .typing{display:inline-block;vertical-align:middle}
+  .dot{display:inline-block;margin:0 2px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0.15;animation:blink 1s infinite}
+  .dot.d1{animation-delay:0s}
+  .dot.d2{animation-delay:.12s}
+  .dot.d3{animation-delay:.24s}
+  @keyframes blink{0%{opacity:.15}50%{opacity:1}100%{opacity:.15}}
+
+  /* theme chips */
+  .theme-list{display:flex;gap:8px;flex-wrap:wrap}
+  .theme-chip{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);cursor:pointer;font-size:13px;background:rgba(255,255,255,0.02)}
+  .theme-chip.active{box-shadow:0 8px 28px rgba(2,6,23,0.6);transform:translateY(-3px)}
+
+
+  /* footer composer */
+  .composer{display:flex;gap:8px;align-items:flex-end;padding-top:8px}
+  textarea{flex:1;min-height:48px;max-height:260px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);resize:none;background:transparent;color:inherit}
+  .small-btn{padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:transparent;cursor:pointer}
+
+/* ---------- animated background canvas (covers full window) ---------- */
+#bgCanvas{
+  position:fixed;
+  left:0;top:0;
+  width:100vw;height:100vh;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* subtle overlay to dim behind panels */
+.bg-overlay{
+  position:fixed;inset:0;z-index:1;mix-blend-mode:overlay;pointer-events:none;
+  background:linear-gradient(180deg, rgba(0,0,0,0.12), rgba(0,0,0,0.28));
+}
+
+ /* header small controls */
+  .header-actions{display:flex;gap:8px;align-items:center}
+  .icon-btn{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;border:1px solid rgba(255,255,255,0.04);cursor:pointer;background:transparent}
+
+  /* fullscreen wrapper to add small border */
+  .fullscreen-mode{position:fixed;inset:0;z-index:50;padding:24px;box-sizing:border-box;background:transparent}
+
+  /* responsive */
+  @media (max-width:980px){ .app{flex-direction:column;padding:12px} aside{width:100%} }
+
+  /* subtle helpers */
+  .muted-2{color:var(--muted);font-size:12px}
+  .status{font-weight:600}
+  label.file{cursor:pointer;padding:6px 8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.04);display:inline-block;font-size:13px}
+
+/* splash screen */
+#splash{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:2000;background:linear-gradient(180deg,#071422 0%, #041018 60%);
+  color:white;flex-direction:column;gap:12px;font-family:Inter, sans-serif;
+  transition:opacity .45s ease, transform .45s ease;
+}
+#splash.hidden{opacity:0;transform:scale(.98);pointer-events:none}
+
+/* small splash branding */
+#splash .logo{
+  width:120px;height:120px;border-radius:18px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#0ea5a4,#34d399);box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  font-weight:800;font-size:18px;color:white;
+}
+
+/* ---------- layout ---------- */
+.app{display:flex;height:100vh;gap:18px;padding:18px;box-sizing:border-box;position:relative;z-index:10}
+aside{width:320px;background:var(--panel);border-radius:14px;padding:18px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:12px;backdrop-filter:blur(var(--blur));transition:transform .35s cubic-bezier(.2,.9,.2,1), opacity .35s}
+aside.collapsed{transform:translateX(-380px);opacity:0}
+.main-wrap{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* header text */
+h1{margin:0;font-size:18px;color:var(--muted);font-weight:700}
+p.small{margin:0;font-size:13px;color:var(--muted)}
+
+/* controls */
+.control-row{display:flex;gap:8px;align-items:center}
+input[type="text"], input[type="url"]{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+button{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--muted);backdrop-filter:blur(6px)}
+button.primary{background:linear-gradient(90deg,var(--user),var(--accent));color:white;border:none;box-shadow:0 8px 28px rgba(11,79,190,0.12)}
+.muted{color:var(--muted);font-size:13px}
+
+/* chat */
+.chat-wrap{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));border-radius:14px;padding:16px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;height:100%}
+#messages{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:6px 6px}
+.bubble{display:flex;gap:12px;align-items:flex-start;max-width:80%;transition:transform .18s ease, box-shadow .18s}
+.bubble:hover{transform:translateY(-4px)}
+.bubble.user{margin-left:auto;flex-direction:row-reverse}
+.avatar{width:44px;height:44px;border-radius:50%;flex:0 0 44px;overflow:hidden;border:2px solid rgba(255,255,255,0.03);display:inline-grid;place-items:center;background:linear-gradient(120deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03))}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.content{padding:12px 14px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.005));color:var(--muted);box-shadow:inset 0 -1px 0 rgba(255,255,255,0.02)}
+.bubble.user .content{background:linear-gradient(90deg,var(--user), rgba(11,79,190,0.85));color:white}
+.bubble.ai .content{box-shadow:0 6px 28px -8px rgba(16,185,129,0.25);border-left:4px solid rgba(16,185,129,0.9)}
+.meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+
+/* typing dots */
+.typing{display:inline-block;vertical-align:middle}
+.dot{display:inline-block;margin:0 2px;width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0.15;animation:blink 1s infinite}
+.dot.d1{animation-delay:0s}
+.dot.d2{animation-delay:.12s}
+.dot.d3{animation-delay:.24s}
+@keyframes blink{0%{opacity:.15}50%{opacity:1}100%{opacity:.15}}
+
+/* composer */
+.composer{display:flex;gap:8px;align-items:flex-end;padding-top:8px}
+textarea{flex:1;min-height:44px;max-height:220px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);resize:none;background:transparent;color:inherit}
+.small-btn{padding:8px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:transparent;cursor:pointer}
+
+/* footer small */
+.bottom-row{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:auto}
+.muted-2{color:var(--muted);font-size:12px}
+.status{font-weight:600}
+
+/* header / action group */
+.header-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;border:1px solid rgba(255,255,255,0.04);cursor:pointer}
+
+/* fullscreen helper */
+.fullscreen-mode{position:fixed;inset:0;z-index:50;padding:24px;box-sizing:border-box;background:transparent;}
+
+/* responsive */
+@media (max-width:900px){
+  .app{flex-direction:column;padding:12px}
+  aside{width:100%}
+}
+
+/* small helper for themes selector UI */
+.theme-list{display:flex;gap:8px;flex-wrap:wrap}
+.theme-chip{padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.06);cursor:pointer;font-size:13px;background:rgba(255,255,255,0.02)}
+.theme-chip.active{box-shadow:0 6px 18px rgba(0,0,0,0.45);transform:translateY(-2px)}
+
+/* subtle glass for inputs */
+label.file{cursor:pointer;padding:6px 8px;border-radius:8px;border:1px dashed rgba(255,255,255,0.04);display:inline-block;font-size:13px}
+</style>
+</head>
+<body>
+<!-- background canvas & overlay -->
+<canvas id="bgCanvas"></canvas>
+<div class="bg-overlay" aria-hidden="true"></div>
+
+<!-- splash -->
+<div id="splash" role="status" aria-live="polite">
+  <div class="logo">FALLZZ</div>
+  <div style="font-size:18px;font-weight:600">Fallzz AI Studio</div>
+  <div style="opacity:.9;color:#9fb6c4">Memuat Model Lokal…</div>
+</div>
+
+<div id="root" class="app" data-theme="dark">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <h1>AI Chat By D.Naufal Septian.P</h1>
+    <p class="small">Kalian Bisa Bertannya Sepuasnya Untuk Menemukan Jawaban Yang Kalian Cari #Fallzz</p>
+
+    <div class="avatar-preview" style="display:flex;gap:12px;align-items:center">
+      <div>
+        <div class="muted-2">AI By Fallzz</div>
+        <div class="avatar" id="aiAvatar"><img src="img/fallzz.png" id="aiAvatarImg" alt="AI"></div>
+        <label class="file">
+          <input id="aiFile" type="file" accept="image/png,image/*" style="display:none">
+        </label>
+      </div>
+
+      <div>
+        <div class="muted-2">Fallzz</div>
+        <div class="avatar" id="userAvatar"><img src="img/fallzz4.jpg" id="userAvatarImg" alt="User"></div>
+        <label class="file">
+          <input id="userFile" type="file" accept="image/png,image/*" style="display:none">
+        </label>
+      </div>
+    </div>
+
+    <div style="height:8px"></div>
+
+    <div class="muted-2">Fallzz Studio URL</div>
+    <input id="url" type="url" placeholder="http://localhost:1234" value="http://localhost:1234">
+
+    <div class="control-row">
+      <button id="connectBtn" class="primary">Connect</button>
+      <div id="status" class="muted-2 status">Not connected</div>
+    </div>
+
+    <div class="control-row">
+      <button id="clearBtn">Bersihkan Chat</button>
+      <button id="exportBtn">Export JSON</button>
+    </div>
+
+    <div class="control-row header-actions" style="margin-top:6px">
+      <div id="toggleSidebar" class="icon-btn" title="Toggle Sidebar">☰</div>
+      <div id="fullscreenBtn" class="icon-btn" title="Fullscreen">⤢</div>
+      <div id="stopBtn" class="icon-btn" title="Stop stream">⏹</div>
+    </div>
+
+    <div class="control-row">
+  <label class="muted-2">Sound</label>
+  <button id="toggleSound">On</button>
+    </div>
+
+
+    <div style="height:8px"></div>
+
+    <div class="muted-2">Tema Warna</div>
+    <div class="theme-list">
+      <div class="theme-chip" data-theme="fallzz-green">Fallzz Green</div>
+      <div class="theme-chip" data-theme="galaxy-blue">Galaxy Blue</div>
+      <div class="theme-chip" data-theme="night-neon">Night Neon</div>
+    </div>
+
+    <div style="height:8px"></div>
+    <div class="muted-2">Tip: pakai <code>http://localhost:1234</code> atau IP LAN model LM Studio.</div>
+
+    <div class="bottom-row">
+      <div class="muted">By Dede Naufal Septian Pratama ✨</div>
+      <div class="muted">#Fallzz.27</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CHAT -->
+  <main class="main-wrap">
+    <div class="chat-wrap" id="chatWrap">
+      <div id="messages" aria-live="polite"></div>
+
+      <div class="composer">
+        <textarea id="input" placeholder="Tulis pesan... (Enter kirim, Shift+Enter baris baru)"></textarea>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button id="sendBtn" class="small-btn primary">Kirim</button>
+          <button id="saveBtn" class="small-btn">Simpan</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* =========================
+   Reused state + utils (from original)
+   ========================= */
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const urlEl = document.getElementById('url');
+const statusEl = document.getElementById('status');
+const connectBtn = document.getElementById('connectBtn');
+const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
+const themeChips = document.querySelectorAll('.theme-chip');
+const toggleSidebarBtn = document.getElementById('toggleSidebar');
+const sidebarEl = document.getElementById('sidebar');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const stopBtn = document.getElementById('stopBtn');
+const sendBtn = document.getElementById('sendBtn');
+const saveBtn = document.getElementById('saveBtn');
+const aiFile = document.getElementById('aiFile');
+const userFile = document.getElementById('userFile');
+const aiAvatarImg = document.getElementById('aiAvatarImg');
+const userAvatarImg = document.getElementById('userAvatarImg');
+const splash = document.getElementById('splash');
+const bgCanvas = document.getElementById('bgCanvas');
+
+let baseURL = '';
+let controller = null;
+let chat = [];
+const LS_KEY = 'offline_ai_chat_v1';
+const LS_AVATARS = 'offline_ai_chat_avatars';
+const LS_THEME = 'offline_ai_chat_theme';
+
+/* placeholders */
+const DEFAULT_AI = aiAvatarImg.getAttribute('src') || '';
+const DEFAULT_USER = userAvatarImg.getAttribute('src') || '';
+
+/* persistence (avatars/chat/theme) */
+function loadAvatars(){
+  const raw = localStorage.getItem(LS_AVATARS);
+  if(raw) {
+    try{ const obj = JSON.parse(raw);
+      if(obj.ai) aiAvatarImg.src = obj.ai;
+      if(obj.user) userAvatarImg.src = obj.user;
+    }catch(e){}
+  }
+}
+function saveAvatars(aiDataUrl, userDataUrl){
+  const obj = {ai: aiDataUrl||aiAvatarImg.src, user: userDataUrl||userAvatarImg.src};
+  localStorage.setItem(LS_AVATARS, JSON.stringify(obj));
+}
+function loadChat(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(!raw) return;
+  try{ chat = JSON.parse(raw); }catch(e){ chat=[]; }
+}
+function saveChat(){ localStorage.setItem(LS_KEY, JSON.stringify(chat)); }
+function loadTheme(){
+  const t = localStorage.getItem(LS_THEME) || 'fallzz-green';
+  applyTheme(t);
+  document.querySelectorAll('.theme-chip').forEach(el=>el.classList.toggle('active', el.dataset.theme===t));
+}
+
+/* UI render */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
+}
+function render(){
+  messagesEl.innerHTML = '';
+  for(const m of chat){
+    const b = document.createElement('div');
+    b.className = 'bubble ' + (m.role==='user'?'user ':'') + (m.role==='assistant'?'ai ':'');
+    const av = document.createElement('div'); av.className='avatar';
+    const img = document.createElement('img'); img.alt = m.role; img.src = (m.role==='user' ? userAvatarImg.src : aiAvatarImg.src);
+    av.appendChild(img);
+    const content = document.createElement('div'); content.className='content';
+    if(m.meta){ const meta = document.createElement('div'); meta.className='meta'; meta.textContent = m.meta; content.appendChild(meta); }
+    const text = document.createElement('div');
+    text.innerHTML = (m.html || escapeHtml(m.text || '')).replace(/\n/g,'<br>');
+    content.appendChild(text);
+    b.appendChild(av); b.appendChild(content); messagesEl.appendChild(b);
+  }
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+function pushMessage(role, text, opts = {}){
+  const item = {role, text, ts: Date.now()};
+  if(opts.meta) item.meta = opts.meta;
+  if(opts.html) item.html = opts.html;
+  chat.push(item); saveChat(); render(); return item;
+}
+
+/* avatar file handlers */
+function fileToDataURL(file){
+  return new Promise((res,rej)=>{ const r = new FileReader(); r.onload = ()=>res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+}
+aiFile.addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; if(!f) return; try{ const d = await fileToDataURL(f); aiAvatarImg.src = d; saveAvatars(d,null); render(); }catch(e){ alert('Gagal membaca file'); }});
+userFile.addEventListener('change', async (e) => { const f = e.target.files && e.target.files[0]; if(!f) return; try{ const d = await fileToDataURL(f); userAvatarImg.src = d; saveAvatars(null,d); render(); }catch(e){ alert('Gagal membaca file'); }});
+document.querySelectorAll('label.file').forEach(l=>{ l.addEventListener('click', ()=>{ const input = l.querySelector('input[type=file]'); if(input) input.click(); }); });
+
+/* connect */
+connectBtn.addEventListener('click', ()=>{
+  baseURL = urlEl.value.trim();
+  if(!baseURL){ alert('Isi URL LM Studio'); return; }
+  if(!baseURL.startsWith('http')) baseURL = 'http://' + baseURL;
+  statusEl.textContent = 'Connected → ' + baseURL;
+  statusEl.style.color = '';
+});
+
+/* stop */
+stopBtn.addEventListener('click', ()=>{ if(controller){ controller.abort(); controller = null; statusEl.textContent='Stopped'; } });
+
+/* export / clear */
+exportBtn.addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(chat, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'chat-export.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+clearBtn.addEventListener('click', ()=>{ if(!confirm('Hapus semua chat dari layar dan localStorage?')) return; chat = []; saveChat(); render(); });
+
+saveBtn.addEventListener('click', ()=>{ saveChat(); alert('Chat disimpan ke localStorage'); });
+
+/* =========================
+   Sound effect (WebAudio) for send
+   - no external file; quick pleasant blip
+   ========================= */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSendSound(){
+  try{
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(720, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.12, audioCtx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + 0.45);
+  }catch(e){}
+}
+
+/* =========================
+   Sidebar toggle (animated)
+   ========================= */
+let sidebarOpen = true;
+toggleSidebarBtn.addEventListener('click', ()=>{
+  sidebarOpen = !sidebarOpen;
+  sidebarEl.classList.toggle('collapsed', !sidebarOpen);
+});
+
+/* =========================
+   Fullscreen toggle for main chat area
+   ========================= */
+let isFull = false;
+fullscreenBtn.addEventListener('click', async ()=>{
+  const el = document.documentElement;
+  try{
+    if(!isFull){
+      if(el.requestFullscreen) await el.requestFullscreen();
+      else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+      isFull = true; fullscreenBtn.title = 'Exit Fullscreen';
+    } else {
+      if(document.exitFullscreen) await document.exitFullscreen();
+      else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
+      isFull = false; fullscreenBtn.title = 'Fullscreen';
+    }
+  }catch(e){}
+});
+
+/* =========================
+   Streaming send (ke LM Studio)
+   - adapted from original
+   ========================= */
+async function send(){
+  const prompt = inputEl.value.trim();
+  if(!prompt) return;
+  if(!baseURL){ alert('Connect dulu ke LM Studio (isi URL di sidebar)'); return; }
+
+  // push user message + sound
+  pushMessage('user', prompt, {meta: new Date().toLocaleString()});
+  playSendSound();
+  inputEl.value = '';
+
+  // typing bubble
+  const typingItem = {role:'assistant', text:'', ts:Date.now(), meta:'Thinking...', html:'<div class="typing"><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></div>'};
+  chat.push(typingItem); render();
+  controller = new AbortController();
+
+  try{
+    const resp = await fetch((baseURL.endsWith('/')?baseURL.slice(0,-1):baseURL) + '/v1/chat/completions', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        model: 'local', stream: true,
+        messages: [{role:'user', content: prompt}],
+        temperature: 0.7
+      }),
+      signal: controller.signal
+    });
+
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let acc = '';
+
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      const chunk = dec.decode(value, {stream:true});
+      const parts = chunk.split('\n');
+      for(const line of parts){
+        if(!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if(!payload || payload === '[DONE]') continue;
+        try{
+          const j = JSON.parse(payload);
+          const delta = j.choices?.[0]?.delta?.content || '';
+          acc += delta;
+          const html = escapeHtml(acc).replace(/\n/g,'<br>') + ' <span class="typing"><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span></span>';
+          chat[chat.length-1].html = html; render();
+        }catch(e){}
+      }
+    }
+
+    // finalize
+    chat[chat.length-1].text = acc;
+    chat[chat.length-1].html = escapeHtml(acc).replace(/\n/g,'<br>');
+    chat[chat.length-1].meta = 'Answered: ' + new Date().toLocaleString();
+    saveChat(); render();
+  }catch(err){
+    if(err.name === 'AbortError') chat[chat.length-1].html = '<i>Stopped by user.</i>';
+    else chat[chat.length-1].html = '<i>Error: '+escapeHtml(err.message)+'</i>';
+    saveChat(); render();
+  }finally{ controller = null; }
+}
+inputEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }});
+sendBtn.addEventListener('click', send);
+
+/* =========================
+   Theme presets (Fallzz Green / Galaxy Blue / Night Neon)
+   - sets CSS variables for quick swap
+   ========================= */
+function applyTheme(name){
+  const root = document.documentElement;
+  // defaults for dark base
+  if(name === 'fallzz-green'){
+    root.style.setProperty('--bg', '#06111a');
+    root.style.setProperty('--panel', 'rgba(6,12,20,0.65)');
+    root.style.setProperty('--muted', '#cfe8df');
+    root.style.setProperty('--accent', '#0ea5a4');
+    root.style.setProperty('--user', '#0b79ff');
+    root.style.setProperty('--ai', '#10b981');
+  } else if(name === 'galaxy-blue'){
+    root.style.setProperty('--bg', '#041226');
+    root.style.setProperty('--panel', 'rgba(6,10,20,0.55)');
+    root.style.setProperty('--muted', '#cfe6ff');
+    root.style.setProperty('--accent', '#7dd3fc');
+    root.style.setProperty('--user', '#60a5fa');
+    root.style.setProperty('--ai', '#7c3aed');
+  } else if(name === 'night-neon'){
+    root.style.setProperty('--bg', '#05040b');
+    root.style.setProperty('--panel', 'rgba(20,14,30,0.6)');
+    root.style.setProperty('--muted', '#e7e0ff');
+    root.style.setProperty('--accent', '#ff6ec7');
+    root.style.setProperty('--user', '#00e5ff');
+    root.style.setProperty('--ai', '#7cffb2');
+  }
+  localStorage.setItem(LS_THEME, name);
+}
+themeChips.forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const name = chip.dataset.theme;
+    document.querySelectorAll('.theme-chip').forEach(el=>el.classList.toggle('active', el===chip));
+    applyTheme(name);
+  });
+});
+
+/* =========================
+   Splash screen handling
+   - shows for around 1s then fade
+   ========================= */
+function hideSplash(){
+  splash.classList.add('hidden');
+  setTimeout(()=>{ splash.style.display='none'; }, 500);
+}
+window.addEventListener('load', ()=>{ setTimeout(hideSplash, 900); });
+
+/* =========================
+   Background animated gradient + particle stars
+   - canvas draws moving gradient + twinkling particles
+   ========================= */
+(function setupBackground(){
+  const c = bgCanvas;
+  const ctx = c.getContext('2d');
+  let w = c.width = innerWidth;
+  let h = c.height = innerHeight;
+  let t = 0;
+  const stars = [];
+  const STAR_COUNT = Math.round((w*h)/60000 * 100); // scale with viewport
+
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+  function resize(){ w = c.width = innerWidth; h = c.height = innerHeight; stars.length=0; for(let i=0;i<STAR_COUNT;i++){ stars.push({x:Math.random()*w,y:Math.random()*h,r:rand(0.3,1.8),a:Math.random(),vx:rand(-0.02,0.02),vy:rand(-0.02,0.02),tw:Math.random()*Math.PI*2}); } }
+  resize();
+  addEventListener('resize', resize);
+
+  function draw(){
+    t += 0.003;
+    // animated gradient background
+    const g = ctx.createLinearGradient(0,0,w,h);
+    // sample colors from CSS variables if available
+    const root = getComputedStyle(document.documentElement);
+    const accent = root.getPropertyValue('--accent') || '#0ea5a4';
+    const bg1 = root.getPropertyValue('--bg') || '#041226';
+    g.addColorStop(0, bg1.trim());
+    g.addColorStop(0.6, accent.trim());
+    g.addColorStop(1, '#020617');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
+
+    // subtle moving overlay (waves)
+    ctx.globalCompositeOperation = 'soft-light';
+    ctx.fillStyle = `rgba(255,255,255,${0.02 + 0.01*Math.sin(t*2)})`;
+    for(let i=0;i<6;i++){
+      const px = Math.sin(t*0.4 + i)*w*0.4 + w*0.5;
+      const py = Math.cos(t*0.6 + i)*h*0.2 + h*0.5;
+      ctx.beginPath();
+      ctx.ellipse(px,py, w*0.6, h*0.25, i/6, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+
+    // draw stars / particles
+    for(const s of stars){
+      s.x += s.vx + Math.sin(t*0.2 + s.tw)*0.05;
+      s.y += s.vy + Math.cos(t*0.3 + s.tw)*0.03;
+      s.tw += 0.01;
+      if(s.x<0) s.x = w;
+      if(s.x>w) s.x = 0;
+      if(s.y<0) s.y = h;
+      if(s.y>h) s.y = 0;
+      const alpha = 0.2 + 0.8*Math.abs(Math.sin(t*1.2 + s.tw));
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(255,255,255,${0.06 * s.r * alpha})`;
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* =========================
+   Startup: load persisted data and initial welcome
+   ========================= */
+loadAvatars();
+loadChat();
+loadTheme();
+
+if(chat.length === 0){
+  pushMessage('assistant', 'Halo Saya Fallzz, Masukkan URL LM Studio -> Connect -> lalu mulai chat.', {meta: 'System'});
+} else { render(); }
+
+/* ensure audio context resume on user gesture (some browsers block autoplay) */
+document.addEventListener('click', ()=>{ if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
+/* ===== SOUND EFFECT ===== */
+let soundEnabled = JSON.parse(localStorage.getItem("soundEnabled") || "true");
+document.getElementById("toggleSound").textContent = soundEnabled ? "On" : "Off";
+
+const sendSound = new Audio("sfx/send.mp3");
+const receiveSound = new Audio("sfx/receive.mp3");
+
+document.getElementById("toggleSound").addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem("soundEnabled", JSON.stringify(soundEnabled));
+  document.getElementById("toggleSound").textContent = soundEnabled ? "On" : "Off";
+});
+
+/* play sound when user sends */
+function playSendSound(){
+  if(soundEnabled) sendSound.play();
+}
+
+/* play sound when ai responds */
+function playReceiveSound(){
+  if(soundEnabled) receiveSound.play();
+}
+
+</script>
+</body>
+</html>
