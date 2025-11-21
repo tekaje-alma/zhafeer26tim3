@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil PPHM ALMAHRUSIYAH</title>
+    
+    <!-- Bootstrap 5 + Icons -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap-icons.min.css">
+    
+    <!-- Google Font: Inter (super clean & modern) -->
+    <link href="css/fonts.googleapis.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #60A5FA;    /* biru muda */
+            --light: #EFF6FF;     /* biru sangat muda */
+            --white: #FFFFFF;
+            --gray: #64748B;
+            --dark: #1E293B;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--white);
+            color: var(--dark);
+            line-height: 1.7;
+        }
+        
+        h1, h2, h3, h4 { font-weight: 700; }
+        
+        /* Navbar transparan → putih saat scroll */
+        .navbar {
+            transition: all 0.4s ease;
+            background: transparent;
+        }
+        .navbar.scrolled {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        
+        /* Hero */
+        /* === EFEK KACA FILM (GLASSMORPHISM) PADA HERO === */
+        
+        .hero {
+            min-height: 100vh;
+            background: url(img/wmremove-transformed.png) no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            position: relative;                    /* penting! */
+        }
+        
+        /* Overlay kaca film */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.3);         /* putih transparan tipis */
+            backdrop-filter: blur(0px);                   /* efek blur kaca */
+            -webkit-backdrop-filter: blur(12px);          /* support Safari */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+        
+        /* Pastikan konten hero di atas overlay */
+        .hero > .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Optional: tambah sedikit gelap di bagian bawah biar teks lebih jelas */
+        .hero::after {
+            content: '';
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            height: 50%;
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3));
+            z-index: 1;
+        }
+        .profile-img {
+            width: 260px;
+            height: 260px;
+            object-fit: cover;
+            border: 8px solid white;
+            box-shadow: 0 20px 40px rgba(96,165,250,0.2);
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(96,165,250,0.4);
+        }
+        
+        /* Section */
+        section {
+            padding: 100px 0;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        /* Skill bar */
+        .skill-item {
+            margin-bottom: 1.5rem;
+        }
+        .skill-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .skill-progress {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            width: 0;
+            transition: width 1.5s ease;
+        }
+        
+        /* Card portofolio */
+        .portfolio-card {
+            text-align: center;
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.4s ease;
+        }
+        .portfolio-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 20px 40px rgba(96,165,250,0.15);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 10px 0 10px;
+        }
+        
+        /* Dzuriyah Card */
+        
+        .dz-card {
+            transition: all 0.3s ease;
+        }
+        .dz-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(96,165,250,0.15) !important;
+        }
+        
+        /* Guru Card */
+        .guru-card {
+            transition: all 0.3s ease;
+        }
+        .guru-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .guru-card img {
+            border: 3px solid var(--primary);
+        }
+        
+        /* Responsif gambar fallback */
+        img.rounded-circle {
+            object-fit: cover;
+        }
+        
+        /* Team Card Hover Effect */
+        .team-card {
+            transition: all 0.4s ease;
+        }
+        .team-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 40px rgba(96,165,250,0.2) !important;
+        }
+        .team-card img {
+            transition: all 0.3s ease;
+        }
+        .team-card:hover img {
+            transform: scale(1.08);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="#">PONPES AL MAHRUSIYAH</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">Tentang</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#dzuriyah">Dzuriyah</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#team">Tim</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Kontak</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section id="home" class="hero glass">
+        <div class="container">
+            <div class="row align-items-center text-center text-lg-start">
+                <div class="col-lg-5 mb-5 mb-lg-0">
+                    <img src="img/logo.svg" style="width: 350px; height: 350x;"
+                         alt="" class="">
+                </div>
+                <div class="col-lg-7">
+                    <h1 class="display-3 fw-bold mb-3 text-white">Halo,Selamat datang di Website <span style=" background-color: #0dcaf0; border-radius: 16px;">  AL MAHRUSIYAH  </span></h1>
+                    <a href="#about" class="btn btn-primary btn-lg me-3">Tentang pondok</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="bg-white">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Tentang Pondok</h2>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <p class="lead text-center">
+                        Pondok Pesantren (Ponpes) Al-Mahrusiyah adalah pesantren di Kediri yang didirikan oleh KH. Imam Yahya Mahrus, putra dari KH. Mahrus Aly (salah satu pendiri Ponpes Lirboyo). Pesantren ini memiliki unit putra dan putri, dengan beberapa lokasi terpisah dan jenjang pendidikan formal mulai dari TK hingga SMK, serta pendidikan diniyah dan madrasah qiro'atil Qur'an. Pesantren ini berorientasi pada pelestarian tradisi salafiyah dan membekali santri dengan pendidikan formal sebagai penyeimbang dalam menghadapi globalisasi. 
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Dzuriyah -->
+<section id="dzuriyah" class="py-5" style="background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);">
+    <div class="container">
+        <!-- Judul Section -->
+        <div class="text-center mb-5">
+            <h2 class="section-title text-dark mb-3">Dzuriyah Al Mahrusiyah</h2>
+            <p class="lead text-muted">Dzuriyah Al Mahrusiyah</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <!-- Kartu Dzuriyah -->
+                <div class="row g-4">
+
+                    <!-- Ayah -->
+                    <div class="col-md-6">
+                        <div class="dz-card p-4 rounded-4 shadow-sm bg-white text-center border-start border-4 border-primary">
+                            <div class="dz-img mb-3">
+                                <img src="img/download (4).jpg" alt="Ayah" class="rounded-circle" width="100" height="100" style="object-fit: cover; border: 4px solid var(--primary); height: 80%;">
+                            </div>
+                            <h5 class="fw-bold text-dark">KH. Imam Yahya Mahrus</h5>
+                            <p class="text-muted mb-1">Pendiri Ponpes Al-Mahrusiyah</p>
+                        </div>
+                    </div>
+
+                    <!-- Ibu -->
+                    <div class="col-md-6">
+                        <div class="dz-card p-4 rounded-4 shadow-sm bg-white text-center border-start border-4 border-info">
+                            <div class="dz-img mb-3">
+                                <img src="img/0-360x450.png" alt="Ibu" class="rounded-circle" width="100" height="100" style="object-fit: cover; border: 4px solid #0dcaf0; height: 145px;">
+                            </div>
+                            <h5 class="fw-bold text-dark">Hj. Zakiyah Miskiyah</h5>
+                            <p class="text-muted mb-1">Istri KH. Imam Yahya Mahrus</p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Guru Utama -->
+                <div class="mt-5">
+                    <h4 class="text-center fw-bold text-dark mb-4">Putra KH. Imam Yahya Mahrus</h4>
+                    <div class="row g-4">
+
+                        <div class="col-md-3">
+                            <div class="guru-card p-4 rounded-4 shadow bg-white text-center">
+                                <img src="img/gusreza.jpg" alt="Guru 1" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                                <h6 class="fw-bold">Dr.KH. Reza Ahmad Zahid Lc.Ma</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="guru-card p-4 rounded-4 shadow bg-white text-center">
+                                <img src="img/download (1).jpg" alt="Guru 2" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                                <h6 class="fw-bold">Agus.H Nabil Ali Utsman M.Pd</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="guru-card p-4 rounded-4 shadow bg-white text-center">
+                                <img src="img/download (2).jpg" alt="Guru 3" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                                <h6 class="fw-bold">Agus.H Izzul Maula Diyaullah M.Pd</h6>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="guru-card p-4 rounded-4 shadow bg-white text-center">
+                                <img src="img/download (3).jpg" alt="Guru 3" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                                <h6 class="fw-bold">Dr.KH Melvin Zainul Asyiqien</h6>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Kutipan -->
+                <div class="text-center mt-5 p-4 bg-white rounded-4 shadow-sm">
+                    <div class="overflow-hidden relative h-56 md:h-48 rounded-lg">
+                            <div class="flex flex-col items-center justify-center h-full text-center p-4">
+                                <p class="text-secondary-text text-xl italic mb-4"><em>"Kemulyaan Didapat Dengan Taat, Kalau Ingin Mulia Di Sisi Allah, Taatlah. Dan Siapa Yang Mulia Di Sisi Allah Maka Ia Akan Mulia"</em></p>
+                                <h5 class="title-accent text-lg font-exo">- KH. Imam Yahya Mahrus -</h5>
+                            </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- Team -->
+<section id="team" class="py-5" style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);">
+    <div class="container">
+        <!-- Judul -->
+        <div class="text-center mb-5">
+            <h2 class="section-title text-dark mb-3">Tim Pengembang</h2>
+            <p class="lead text-muted">Kami adalah tim kecil yang bekerja penuh semangat dan doa</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+
+            <!-- Anggota 1 - Ketua / Kamu -->
+            <div class="col-md-6 col-lg-4">
+                <div class="team-card text-center p-4 bg-white rounded-4 shadow-sm border-top border-5 border-primary h-100">
+                    <img src="img/nizar-gemini.png" 
+                         alt="Ahmad Rizki" class="rounded-circle mb-4" width="140" height="140" style="object-fit: cover; border: 6px solid var(--primary);">
+                    <h5 class="fw-bold text-dark">Nizar Ahmad Abi Zain</h5>
+                    <p class="text-primary fw-semibold mb-2">Front-end Developer</p>
+                    <p class="text-muted small">Santri Ponpes Al-Mahrusiyah<br>XII TJKT B – Angkatan 2026</p>
+                    <div class="d-flex justify-content-center gap-3 mt-3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anggota 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="team-card text-center p-4 bg-white rounded-4 shadow-sm border-top border-5 border-info h-100">
+                    <img src="img/dimas-gemini.png" 
+                         alt="Siti Aisyah" class="rounded-circle mb-4" width="140" height="140" style="object-fit: cover; border: 6px solid #0dcaf0;">
+                    <h5 class="fw-bold text-dark">Dimas Syaefudin</h5>
+                    <p class="text-info fw-semibold mb-2">Project Leader & Dokumenter</p>
+                    <p class="text-muted small">Santri Ponpes Al-Mahrusiyah<br>XII TJKT B – Angkatan 2026</p>
+                    <div class="d-flex justify-content-center gap-3 mt-3">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Kutipan Penutup -->
+                         <div class="text-center mt-5 p-4 bg-white rounded-4 shadow-sm">
+                    <div class="overflow-hidden relative h-56 md:h-48 rounded-lg">
+                        
+                        <!-- Item 1 (Active by default: translate-x-0, z-20) -->
+                            <div class="flex flex-col items-center justify-center h-full text-center p-4">
+                                <p class="text-secondary-text text-xl italic mb-4"><em>"jangan mudah menyerah ,ingat perjuangan mu sampai titik ini tidaklah Mudah"</em></p>
+                                <h5 class="title-accent text-lg font-exo">- Dimas Syaefudin -</h5>
+                            </div>
+                    </div>
+                </div>
+
+
+    </div>
+</section>
+
+    <!-- Contact -->
+    <section id="contact" style="background:#f0f7ff;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Hubungi Kami</h2>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <p class="lead text-center mb-5">
+                        Punya proyek menarik atau ingin ngobrol santai? Yuk ngobrol!
+                    </p>
+                    <div class="text-center">
+                        <a href="akunsinau424@email.com" class="btn btn-primary btn-lg">Kirim Email</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center">
+            <p>&copy; 2025 BRUPANG. Dibuat dengan inspirasi dan kopi.</p>
+    </footer>
+
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar berubah warna saat scroll
+        window.addEventListener('scroll', () => {
+            document.querySelector('.navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+    </script>
+</body>
+</html>
